@@ -5,5 +5,6 @@ data class ChatStreamChunkResponse(
     val content: String? = null,
     val threadId: Long? = null,
     val chatId: Long? = null,
-    val model: String? = null
+    val model: String? = null,
+    val message: String? = null
 )

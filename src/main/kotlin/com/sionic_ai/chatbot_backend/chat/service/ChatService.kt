@@ -87,16 +87,18 @@ class ChatService(
                 val selectedModel = request.model ?: "gpt-4o-mini"
 
                 val fullAnswer = aiChatClient.streamAnswer(selectedModel, messages) { delta ->
-                    emitter.send(
-                        SseEmitter.event()
-                            .name("message")
-                            .data(
-                                ChatStreamChunkResponse(
-                                    type = "chunk",
-                                    content = delta
+                    runCatching {
+                        emitter.send(
+                            SseEmitter.event()
+                                .name("message")
+                                .data(
+                                    ChatStreamChunkResponse(
+                                        type = "chunk",
+                                        content = delta
+                                    )
                                 )
-                            )
-                    )
+                        )
+                    }.onFailure { throw it }
                 }
 
                 val chat = saveStreamedChat(
@@ -123,7 +125,19 @@ class ChatService(
 
                 emitter.complete()
             } catch (e: Exception) {
-                emitter.completeWithError(e)
+                runCatching {
+                    emitter.send(
+                        SseEmitter.event()
+                            .name("error")
+                            .data(
+                                ChatStreamChunkResponse(
+                                    type = "error",
+                                    message = e.message ?: "알 수 없는 오류가 발생했습니다."
+                                )
+                            )
+                    )
+                }
+                emitter.complete()
             }
         }
 

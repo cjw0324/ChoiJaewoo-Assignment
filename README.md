@@ -40,8 +40,11 @@
    - OpenAI SSE 응답을 직접 relay 하는 방식으로 SseEmitter 기반 스트리밍 응답 API 구현
         - OpenAI가 전달하는 delta chunk를 실시간으로 클라이언트에 전달하고, 최종 응답은 누적하여 DB에 저장하도록 구성
 
-6. 보안 및 예외 흐름 보완 
+6. 보안 및 예외 흐름 보완
    - Spring Security 기반 stateless 인증 구조 구성
+   - SSE 스트리밍 에러 처리 개선
+     - 스트리밍 도중 에러 발생 시 `completeWithError` 대신 `event: error` SSE 이벤트를 전송한 뒤 정상 종료하여, 클라이언트가 에러를 명시적으로 수신 가능하도록 개선
+     - 클라이언트 연결 끊김 시 `emitter.send()` 예외를 감지하여 OpenAI 응답 소모를 즉시 중단하도록 처리
 
 ### 미구현 기능
 - 피드백 생성 / 조회 / 상태 변경 
